@@ -1,4 +1,5 @@
 import nmigen as nm
+import nmigen.sim
 from riscy_boi import alu
 
 

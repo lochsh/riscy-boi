@@ -1,7 +1,6 @@
 import enum
 
 import nmigen as nm
-from nmigen.cli import main
 
 
 class ALUOp(enum.Enum):
@@ -26,8 +25,3 @@ class ALU(nm.Elaboratable):
             with m.Case(ALUOp.SUB):
                 m.d.comb += self.o.eq(self.a - self.b)
         return m
-
-
-if __name__ == "__main__":
-    alu = ALU(width=32)
-    main(alu, ports=[alu.op, alu.a, alu.b, alu.o])
