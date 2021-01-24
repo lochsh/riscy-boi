@@ -1,16 +1,31 @@
+"""Arithmetic Logic Unit"""
 import enum
 
 import nmigen as nm
 
 
 class ALUOp(enum.Enum):
+    """Operations for the ALU"""
     ADD = 0
     SUB = 1
 
 
 class ALU(nm.Elaboratable):
+    """
+    Arithmetic Logic Unit
+
+    * a (in): the first operand
+    * b (in): the second operand
+    * o (out): the output
+    """
 
     def __init__(self, width):
+        """
+        Initialiser
+
+        Args:
+            width (int): data width
+        """
         self.op = nm.Signal()
         self.a = nm.Signal(width)
         self.b = nm.Signal(width)

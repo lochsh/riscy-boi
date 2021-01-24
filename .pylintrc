@@ -1,0 +1,12 @@
+[FORMAT]
+max-line-length=79
+indent-after-paren=8
+
+[BASIC]
+good-names=m,o,a,b,op,wp
+
+[DESIGN]
+max-attributes=10
+
+[MESSAGES CONTROL]
+disable=C0116,R0903

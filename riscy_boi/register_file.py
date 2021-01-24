@@ -1,3 +1,4 @@
+"""Reigster file"""
 import nmigen as nm
 
 

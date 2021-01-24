@@ -1,5 +1,7 @@
+"""ALU tests"""
 import nmigen as nm
 import nmigen.sim
+
 from riscy_boi import alu
 
 
@@ -18,7 +20,7 @@ def test_alu():
         yield
         assert (yield o) == 2
 
-    sim = nm.sim.Simulator(mod)
+    sim = nmigen.sim.Simulator(mod)
     sim.add_sync_process(testbench)
     sim.add_clock(1e-6)
     with sim.write_vcd("tests/vcd/alu.vcd"):
