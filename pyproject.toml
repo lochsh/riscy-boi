@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "riscy-boi"
+version = "0.1.0"
+description = "Toy nmigen rv32i cpu implementation"
+authors = ["Hannah McLaughlin <h@mcla.ug>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+nmigen = {git="https://github.com/nmigen/nmigen"}
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -20,7 +20,7 @@ class Operator(nm.Elaboratable):
 
     def elaborate(self, _):
         m = nm.Module()
-        self.o.eq(self.operation(self.a, self.b))
+        m.d.comb += self.o.eq(self.operation(self.a, self.b))
         return m
 
 
