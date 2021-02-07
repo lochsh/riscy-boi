@@ -19,7 +19,7 @@ def test_program_counter_increment():
 
     def testbench():
         start = (yield pc.o)
-        yield pc.op.eq(program_counter.ProgramCounterOp.INC)
+        yield pc.load.eq(0)
         yield
         assert (yield pc.o) == start + program_counter.INSTR_BYTES
 
@@ -32,7 +32,7 @@ def test_program_counter_set():
     def testbench():
         address = 0xdeadbeef
         yield pc.i.eq(address)
-        yield pc.op.eq(program_counter.ProgramCounterOp.SET)
+        yield pc.load.eq(1)
         yield
         assert (yield pc.o) == address
 
@@ -45,11 +45,11 @@ def test_program_counter_sequence():
     def testbench():
         address = 0xdeadbeef
         yield pc.i.eq(address)
-        yield pc.op.eq(program_counter.ProgramCounterOp.SET)
+        yield pc.load.eq(1)
         yield
         assert (yield pc.o) == address
 
-        yield pc.op.eq(program_counter.ProgramCounterOp.INC)
+        yield pc.load.eq(0)
         yield
         assert (yield pc.o) == address + program_counter.INSTR_BYTES
 
