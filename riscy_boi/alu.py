@@ -4,7 +4,7 @@ import enum
 import nmigen as nm
 
 
-class ALUOp(enum.Enum):
+class ALUOp(enum.IntEnum):
     """Operations for the ALU"""
     ADD = 0
     SUB = 1
@@ -14,6 +14,7 @@ class ALU(nm.Elaboratable):
     """
     Arithmetic Logic Unit
 
+    * op (in): the opcode
     * a (in): the first operand
     * b (in): the second operand
     * o (out): the output
