@@ -3,7 +3,7 @@ max-line-length=79
 indent-after-paren=8
 
 [BASIC]
-good-names=m,o,a,b,op,wp,i,pc
+good-names=m,o,a,b,op,wp,i,pc,rd
 
 [DESIGN]
 max-attributes=10
