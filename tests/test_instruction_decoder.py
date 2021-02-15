@@ -1,6 +1,4 @@
 """Instruction decoder tests"""
-import os
-
 import nmigen.sim
 
 from riscy_boi import alu
@@ -8,7 +6,7 @@ from riscy_boi import encoding
 from riscy_boi import instruction_decoder
 
 
-def test_decoding_addi():
+def test_decoding_addi(comb_sim):
     idec = instruction_decoder.InstructionDecoder()
 
     def testbench():
@@ -29,13 +27,10 @@ def test_decoding_addi():
         assert (yield idec.rf_write_enable) == 1
         assert (yield idec.rf_write_select) == rd
 
-    sim = nmigen.sim.Simulator(idec)
-    sim.add_process(testbench)
-    with sim.write_vcd(os.path.join("tests", "vcd", "idec-addi.vcd")):
-        sim.run_until(100e-6)
+    comb_sim(idec, testbench)
 
 
-def test_decoding_jal():
+def test_decoding_jal(comb_sim):
     idec = instruction_decoder.InstructionDecoder()
 
     def testbench():
@@ -49,7 +44,4 @@ def test_decoding_jal():
         assert (yield idec.alu_op) == alu.ALUOp.ADD
         assert (yield idec.alu_imm) == int("1" * 32, base=2)
 
-    sim = nmigen.sim.Simulator(idec)
-    sim.add_process(testbench)
-    with sim.write_vcd(os.path.join("tests", "vcd", "idec-jal.vcd")):
-        sim.run_until(100e-6)
+    comb_sim(idec, testbench)

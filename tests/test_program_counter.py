@@ -1,20 +1,8 @@
 """Program Counter tests"""
-import os
-
-import nmigen.sim
-
 from riscy_boi import program_counter
 
 
-def run_test(pc, testbench, filename):
-    sim = nmigen.sim.Simulator(pc)
-    sim.add_sync_process(testbench)
-    sim.add_clock(1/10e6)
-    with sim.write_vcd(os.path.join("tests", "vcd", filename)):
-        sim.run()
-
-
-def test_program_counter_increment():
+def test_program_counter_increment(sync_sim):
     pc = program_counter.ProgramCounter()
 
     def testbench():
@@ -23,10 +11,10 @@ def test_program_counter_increment():
         yield
         assert (yield pc.o) == start + program_counter.INSTR_BYTES
 
-    run_test(pc, testbench, "pc-inc.vcd")
+    sync_sim(pc, testbench)
 
 
-def test_program_counter_set():
+def test_program_counter_set(sync_sim):
     pc = program_counter.ProgramCounter()
 
     def testbench():
@@ -36,10 +24,10 @@ def test_program_counter_set():
         yield
         assert (yield pc.o) == address
 
-    run_test(pc, testbench, "pc-set.vcd")
+    sync_sim(pc, testbench)
 
 
-def test_program_counter_sequence():
+def test_program_counter_sequence(sync_sim):
     pc = program_counter.ProgramCounter()
 
     def testbench():
@@ -53,4 +41,4 @@ def test_program_counter_sequence():
         yield
         assert (yield pc.o) == address + program_counter.INSTR_BYTES
 
-    run_test(pc, testbench, "pc-seq.vcd")
+    sync_sim(pc, testbench)

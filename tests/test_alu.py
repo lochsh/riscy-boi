@@ -17,7 +17,7 @@ from riscy_boi import alu
             (alu.ALUOp.SUB, 1, 1, 0),
             (alu.ALUOp.SUB, 4942, 0, 4942),
             (alu.ALUOp.SUB, 1, 2, 2**32 - 1)])
-def test_alu(op, a, b, o):
+def test_alu(comb_sim, op, a, b, o):
     alu_inst = alu.ALU(32)
 
     def testbench():
@@ -27,7 +27,4 @@ def test_alu(op, a, b, o):
         yield nmigen.sim.Settle()
         assert (yield alu_inst.o) == o
 
-    sim = nmigen.sim.Simulator(alu_inst)
-    sim.add_process(testbench)
-    with sim.write_vcd("tests/vcd/alu.vcd"):
-        sim.run_until(100e-6)
+    comb_sim(alu_inst, testbench)

@@ -23,9 +23,12 @@ class ProgramCounter(nm.Elaboratable):
         m = nm.Module()
         pc = nm.Signal(self.width)
 
+        # Pylint is confused about this part of nmigen
+        # pylint: disable=E1129
         with m.If(self.load):
             m.d.sync += pc.eq(self.i + INSTR_BYTES)
             m.d.comb += self.o.eq(self.i)
+        # pylint: disable=E1129
         with m.Else():
             m.d.sync += pc.eq(pc + INSTR_BYTES)
             m.d.comb += self.o.eq(pc)
