@@ -4,6 +4,7 @@ import os
 import nmigen.sim
 
 from riscy_boi import alu
+from riscy_boi import encoding
 from riscy_boi import instruction_decoder
 
 
@@ -12,16 +13,11 @@ def test_decoding_addi():
 
     def testbench():
         immediate = 0b100011110000
-        opcode = instruction_decoder.INTEGER_REGISTER_IMMEDIATE
-        funct = 0
+        opcode = encoding.Opcode.OP_IMM
+        funct = encoding.IntRegImmFunct.ADDI
         rs1 = 1
         rd = 2
-        instruction = (
-                (immediate << 20) |
-                (rs1 << instruction_decoder.RS1_POS) |
-                (funct << 12) |
-                (rd << instruction_decoder.RD_POS) |
-                (opcode << instruction_decoder.OPCODE_POS))
+        instruction = encoding.IType.encode(immediate, rs1, funct, rd, opcode)
 
         yield idec.instr.eq(instruction)
         yield nmigen.sim.Settle()
@@ -36,4 +32,24 @@ def test_decoding_addi():
     sim = nmigen.sim.Simulator(idec)
     sim.add_process(testbench)
     with sim.write_vcd(os.path.join("tests", "vcd", "idec-addi.vcd")):
+        sim.run_until(100e-6)
+
+
+def test_decoding_jal():
+    idec = instruction_decoder.InstructionDecoder()
+
+    def testbench():
+        immediate = int("1" * 20, base=2)
+        rd = 5
+        instruction = encoding.JType.encode(immediate, rd)
+
+        yield idec.instr.eq(instruction)
+        yield nmigen.sim.Settle()
+        assert (yield idec.pc_load) == 1
+        assert (yield idec.alu_op) == alu.ALUOp.ADD
+        assert (yield idec.alu_imm) == int("1" * 32, base=2)
+
+    sim = nmigen.sim.Simulator(idec)
+    sim.add_process(testbench)
+    with sim.write_vcd(os.path.join("tests", "vcd", "idec-jal.vcd")):
         sim.run_until(100e-6)
