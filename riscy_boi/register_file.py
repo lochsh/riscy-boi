@@ -46,7 +46,7 @@ class RegisterFile(nm.Elaboratable):
         m.d.comb += wp.en.eq(
                 nm.Mux(self.write_select == 0, 0, self.write_enable))
 
-        for sel, data, port in zip(
+        for sel, data, port in (
                 (self.read_select_1, self.read_data_1, rp1),
                 (self.read_select_2, self.read_data_2, rp2),
                 (self.write_select, self.write_data, wp)):

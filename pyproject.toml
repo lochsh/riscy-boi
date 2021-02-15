@@ -7,9 +7,14 @@ authors = ["Hannah McLaughlin <h@mcla.ug>"]
 [tool.poetry.dependencies]
 python = "^3.8"
 nmigen = {git="https://github.com/nmigen/nmigen"}
+nmigen_boards = {git="https://github.com/nmigen/nmigen-boards"}
+yowasp-yosys = "^0.9.post5191.dev103"
+yowasp-nextpnr-ice40 = "^0.0.post2867.dev68"
+yowasp-nextpnr-ice40-8k = "^0.0.post2867.dev68"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.1"
+pylint = "^2.6.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

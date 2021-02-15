@@ -19,6 +19,7 @@ class InstructionDecoder(nm.Elaboratable):
     * rf_write_select (out): register files' write_select input
     * rf_read_select_1 (out): register file's read_select_1 input
     * rf_read_select_2 (out): register file's read_select_2 input
+    * mux_op (out): multiplexor operation
     """
 
     def __init__(self, num_registers=32):
@@ -32,6 +33,7 @@ class InstructionDecoder(nm.Elaboratable):
         self.rf_write_select = nm.Signal(range(num_registers))
         self.rf_read_select_1 = nm.Signal(range(num_registers))
         self.rf_read_select_2 = nm.Signal(range(num_registers))
+        self.mux_op = nm.Signal()
 
     def elaborate(self, _):
         m = nm.Module()
@@ -51,6 +53,7 @@ class InstructionDecoder(nm.Elaboratable):
                         m.d.comb += self.pc_load.eq(0)
                         m.d.comb += self.alu_op.eq(alu.ALUOp.ADD)
                         m.d.comb += self.alu_imm.eq(itype.immediate())
+                        m.d.comb += self.mux_op.eq(0)
 
             with m.Case(encoding.Opcode.JAL):
                 m.d.comb += self.rf_write_enable.eq(1)
@@ -59,5 +62,6 @@ class InstructionDecoder(nm.Elaboratable):
                 m.d.comb += self.pc_load.eq(1)
                 m.d.comb += self.alu_op.eq(alu.ALUOp.ADD)
                 m.d.comb += self.alu_imm.eq(jtype.immediate())
+                m.d.comb += self.mux_op.eq(1)
 
         return m
