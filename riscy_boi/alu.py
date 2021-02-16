@@ -17,6 +17,7 @@ class ALU(nm.Elaboratable):
     * op (in): the opcode
     * a (in): the first operand
     * b (in): the second operand
+
     * o (out): the output
     """
 
