@@ -16,7 +16,7 @@ class RegisterFile(nm.Elaboratable):
     * write_data (in): data to write to register selected by write_select
     """
 
-    def __init__(self, num_registers=32, register_width=32):
+    def __init__(self, num_registers=32, register_width=32, debug_reg=2):
         self.num_registers = num_registers
         self.register_width = register_width
 
@@ -29,15 +29,18 @@ class RegisterFile(nm.Elaboratable):
         self.write_select = nm.Signal(self.register_width)
         self.write_data = nm.Signal(self.register_width)
 
+        self.debug_out = nm.Signal(self.register_width)
+        self.debug_reg = debug_reg
+
     def elaborate(self, _):
         m = nm.Module()
         registers = nm.Memory(
                 width=self.register_width,
                 depth=self.num_registers)
 
-        # In iCE40 block RAMs are always read-before-write
-        rp1 = m.submodules.rp1 = registers.read_port(transparent=False)
-        rp2 = m.submodules.rp2 = registers.read_port(transparent=False)
+        rp1 = m.submodules.rp1 = registers.read_port(domain="comb")
+        rp2 = m.submodules.rp2 = registers.read_port(domain="comb")
+        debug_rp = m.submodules.debug_rp = registers.read_port(domain="comb")
         wp = m.submodules.wp = registers.write_port()
 
         # The first register, x0, has a special function: Reading it always
@@ -49,7 +52,8 @@ class RegisterFile(nm.Elaboratable):
         for sel, data, port in (
                 (self.read_select_1, self.read_data_1, rp1),
                 (self.read_select_2, self.read_data_2, rp2),
-                (self.write_select, self.write_data, wp)):
+                (self.write_select, self.write_data, wp),
+                (self.debug_reg, self.debug_out, debug_rp)):
             m.d.comb += [port.addr.eq(sel), port.data.eq(data)]
 
         return m

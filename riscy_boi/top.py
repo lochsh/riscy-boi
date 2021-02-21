@@ -2,6 +2,7 @@
 import nmigen as nm
 
 from . import cpu
+from . import encoding
 
 
 class Top(nm.Elaboratable):
@@ -9,8 +10,20 @@ class Top(nm.Elaboratable):
 
     def elaborate(self, platform):
         m = nm.Module()
-        cpu_inst = m.submodules.cpu = cpu.CPU()
-        imem = nm.Memory(width=32, depth=1024)
+        reg = 2
+        cpu_inst = m.submodules.cpu = cpu.CPU(debug_reg=reg)
+
+        link_reg = 5
+        program = [encoding.IType.encode(
+                        1,
+                        reg,
+                        encoding.IntRegImmFunct.ADDI,
+                        reg,
+                        encoding.Opcode.OP_IMM),
+                   # jump back to the previous instruction for infinite loop
+                   encoding.JType.encode(0xffffc, link_reg)]
+
+        imem = nm.Memory(width=32, depth=1024, init=program)
         imem_rp = m.submodules.imem_rp = imem.read_port()
         m.d.comb += [
                 imem_rp.addr.eq(cpu_inst.imem_addr),
@@ -19,6 +32,6 @@ class Top(nm.Elaboratable):
 
         colours = ["b", "g", "o", "r"]
         leds = nm.Cat(platform.request(f"led_{c}") for c in colours)
-        m.d.sync += leds.eq(cpu_inst.imem_addr[25:29])
+        m.d.sync += leds.eq(cpu_inst.debug_out[25:29])
 
         return m

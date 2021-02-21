@@ -6,7 +6,7 @@ indent-after-paren=8
 good-names=m,o,a,b,op,wp,i,pc,rd,rf
 
 [DESIGN]
-max-attributes=10
+max-attributes=12
 max-args=6
 
 [MESSAGES CONTROL]
