@@ -1,5 +1,7 @@
 """Instruction encoding and decoding"""
+import collections
 import enum
+import functools
 
 import nmigen as nm
 
@@ -65,8 +67,8 @@ class IntRegImmFunct(enum.IntEnum):
 
 class IType:
     """I-type instruction format"""
-    IMM_START = 20
-    IMM_END = 32
+    offset_start = 20
+    offset_end = 32
     FUNCT_START = 12
     FUNCT_END = 14
 
@@ -75,14 +77,14 @@ class IType:
 
     @classmethod
     def encode(cls, imm_val, rs1_val, funct_val, rd_val, opcode_val):
-        return ((imm_val << cls.IMM_START) |
+        return ((imm_val << cls.offset_start) |
                 (rs1_val << RS1_START) |
                 (funct_val << cls.FUNCT_START) |
                 (rd_val << RD_START) |
                 (opcode_val << OPCODE_START))
 
     def immediate(self):
-        return sext(self.instr[self.IMM_START:self.IMM_END])
+        return sext(self.instr[self.offset_start:self.offset_end])
 
     def funct(self):
         return self.instr[self.FUNCT_START:self.FUNCT_END]
@@ -90,23 +92,58 @@ class IType:
 
 class JType:
     """J-type instruction format"""
-    IMM_START = 12
-    IMM_END = 32
+    ImmediateField = collections.namedtuple(
+            "ImmediateField",
+            ["instr_start", "instr_end", "offset_start", "offset_end"],
+    )
+
+    IMM_FIELDS = (
+            ImmediateField(
+                instr_start=12,
+                instr_end=20,
+                offset_start=12,
+                offset_end=20),
+            ImmediateField(
+                instr_start=20,
+                instr_end=21,
+                offset_start=11,
+                offset_end=12),
+            ImmediateField(
+                instr_start=21,
+                instr_end=31,
+                offset_start=1,
+                offset_end=11),
+            ImmediateField(
+                instr_start=31,
+                instr_end=32,
+                offset_start=20,
+                offset_end=21))
+
     OPCODE = Opcode.JAL  # The only opcode in rv32i with J-type format
 
     def __init__(self, instruction):
         self.instr = instruction
 
     @classmethod
-    def encode(cls, imm_val, rd_val):
-        return ((imm_val << cls.IMM_START) |
+    def encode(cls, offset, rd_val):
+        unsigned_offset = nm.Const(offset, 32).as_unsigned()
+
+        def shuffle_imm(result, field):
+            return result | (
+                    unsigned_offset[field.offset_start:field.offset_end]
+                    << field.instr_start)
+        sorted_imm_fields = sorted(
+                cls.IMM_FIELDS,
+                key=lambda field: field.instr_start)
+        return (functools.reduce(shuffle_imm, sorted_imm_fields, 0) |
                 (rd_val << RD_START) |
                 (cls.OPCODE << OPCODE_START))
 
     def immediate(self):
-        unshuffled = nm.Cat(
-                self.instr[31],
-                self.instr[12:20],
-                self.instr[20],
-                self.instr[21:31])
+        sorted_imm_fields = sorted(
+                self.IMM_FIELDS,
+                key=lambda field: field.offset_start)
+        to_unshuffle = [self.instr[field.instr_start:field.instr_end]
+                        for field in sorted_imm_fields]
+        unshuffled = nm.Cat(0, *to_unshuffle)
         return sext(unshuffled)
