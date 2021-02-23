@@ -1,4 +1,4 @@
-import nmigen.sim
+"""Tests for encoding and decoding"""
 import nmigen as nm
 import pytest
 

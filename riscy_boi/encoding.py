@@ -16,26 +16,86 @@ RS2_END = 25
 
 
 def sext(immediate, desired_length=32):
-    """Sign extension"""
+    """
+    Sign extension
+
+    Args:
+        immediate (nm.Value): the immediate to be sign extended
+        desired_length (int): the desired length of the extended output
+
+    Returns:
+        nm.hdl.ast.Cat: the sign-extended immediate
+    """
     return nm.Cat(
             immediate,
             nm.Repl(immediate[-1], desired_length - len(immediate)))
 
 
 def opcode(instruction):
-    return instruction[0:7]
+    """
+    Extract the opcode from an instruction.
+
+    Note the opcode position is the same for all instructions.
+
+    Args:
+        instruction (nm.Signal): the instruction to extract the opcode from
+
+    Returns:
+        nm.hdl.ast.Slice: the opcode
+    """
+    return instruction[OPCODE_START:OPCODE_END]
 
 
 def rd(instruction):
-    return instruction[7:12]
+    """
+    Extract the destination register from an instruction.
+
+    Note the destination register field is in the same position for all
+    instructions that encode it, but not all instructions do (e.g. S-type
+    instructions).
+
+    Args:
+        instruction (nm.Signal): the instruction to extract the destination
+            register from
+
+    Returns:
+        nm.hdl.ast.Slice: the destination register
+    """
+    return instruction[RD_START:RD_END]
 
 
 def rs1(instruction):
-    return instruction[15:20]
+    """
+    Extract the source register 1 field from an instruction.
+
+    Note this field is in the same position for all instructions that encode
+    it, but not all instructions do (e.g. U-type instructions).
+
+    Args:
+        instruction (nm.Signal): the instruction to extract source register 1
+            from
+
+    Returns:
+        nm.hdl.ast.Slice: the source register 1 field
+    """
+    return instruction[RS1_START:RS1_END]
 
 
 def rs2(instruction):
-    return instruction[20:25]
+    """
+    Extract the source register 2 field from an instruction.
+
+    Note this field is in the same position for all instructions that encode
+    it, but not all instructions do (e.g. I-type instructions).
+
+    Args:
+        instruction (nm.Signal): the instruction to extract source register 2
+            from
+
+    Returns:
+        nm.hdl.ast.Slice: the source register 2 field
+    """
+    return instruction[RS2_START:RS2_END]
 
 
 class Opcode(enum.IntEnum):
@@ -67,8 +127,8 @@ class IntRegImmFunct(enum.IntEnum):
 
 class IType:
     """I-type instruction format"""
-    offset_start = 20
-    offset_end = 32
+    IMM_START = 20
+    IMM_END = 32
     FUNCT_START = 12
     FUNCT_END = 14
 
@@ -77,14 +137,14 @@ class IType:
 
     @classmethod
     def encode(cls, imm_val, rs1_val, funct_val, rd_val, opcode_val):
-        return ((imm_val << cls.offset_start) |
+        return ((imm_val << cls.IMM_START) |
                 (rs1_val << RS1_START) |
                 (funct_val << cls.FUNCT_START) |
                 (rd_val << RD_START) |
                 (opcode_val << OPCODE_START))
 
     def immediate(self):
-        return sext(self.instr[self.offset_start:self.offset_end])
+        return sext(self.instr[self.IMM_START:self.IMM_END])
 
     def funct(self):
         return self.instr[self.FUNCT_START:self.FUNCT_END]
@@ -126,24 +186,44 @@ class JType:
 
     @classmethod
     def encode(cls, offset, rd_val):
+        """
+        Assembler method to encode an instruction
+
+        Args:
+            offset (int): the jump offset
+            rd_val (int): the destination register
+
+        Returns:
+            nm.hdl.ast.Operator: the encoded instruction
+        """
         unsigned_offset = nm.Const(offset, 32).as_unsigned()
 
         def shuffle_imm(result, field):
             return result | (
                     unsigned_offset[field.offset_start:field.offset_end]
                     << field.instr_start)
+
         sorted_imm_fields = sorted(
                 cls.IMM_FIELDS,
                 key=lambda field: field.instr_start)
+
         return (functools.reduce(shuffle_imm, sorted_imm_fields, 0) |
                 (rd_val << RD_START) |
                 (cls.OPCODE << OPCODE_START))
 
     def immediate(self):
+        """
+        Construct the sign-extended immediate from the instruction
+
+        Returns:
+            nm.hdl.ast.Cat: the decoded immediate
+        """
         sorted_imm_fields = sorted(
                 self.IMM_FIELDS,
                 key=lambda field: field.offset_start)
+
         to_unshuffle = [self.instr[field.instr_start:field.instr_end]
                         for field in sorted_imm_fields]
+
         unshuffled = nm.Cat(0, *to_unshuffle)
         return sext(unshuffled)
