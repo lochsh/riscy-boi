@@ -182,6 +182,12 @@ class JType:
     OPCODE = Opcode.JAL  # The only opcode in rv32i with J-type format
 
     def __init__(self, instruction):
+        """
+        Initialiser
+
+        Args:
+            instruction (nm.Value): the instruction to decode
+        """
         self.instr = instruction
 
     @classmethod
@@ -194,14 +200,16 @@ class JType:
             rd_val (int): the destination register
 
         Returns:
-            nm.hdl.ast.Operator: the encoded instruction
+            int: the encoded instruction
         """
-        unsigned_offset = nm.Const(offset, 32).as_unsigned()
 
         def shuffle_imm(result, field):
+            width = field.offset_end - field.offset_start
+            mask = int("1" * width, 2) << field.offset_start
+
             return result | (
-                    unsigned_offset[field.offset_start:field.offset_end]
-                    << field.instr_start)
+                    (offset & mask) <<
+                    (field.instr_start - field.offset_start))
 
         sorted_imm_fields = sorted(
                 cls.IMM_FIELDS,

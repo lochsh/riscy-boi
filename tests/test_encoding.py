@@ -18,7 +18,7 @@ from riscy_boi import encoding
         ])
 def test_jtype_same_offset_out_as_in(comb_sim, offset):
     m = nm.Module()
-    jal = encoding.JType.encode(offset, 5)
+    jal = nm.Const(encoding.JType.encode(offset, 5), shape=32)
     extended_offset = int(f"{offset:021b}"[0]*11 + f"{offset:021b}", 2)
     assert (extended_offset & 0x1ffffe) == offset
 
