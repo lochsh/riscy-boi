@@ -26,3 +26,30 @@ def test_jtype_same_offset_out_as_in(comb_sim, offset):
         assert (yield encoding.JType(jal).immediate()) == extended_offset
 
     comb_sim(m, testbench)
+
+
+@pytest.mark.parametrize(
+        "imm",
+        [
+            0b11110000111,
+            0b01010101010,
+            0b11111111111,
+            0b00010010010,
+        ])
+def test_itype_same_immediate_out_as_in(comb_sim, imm):
+    m = nm.Module()
+    addi = nm.Const(
+            encoding.IType.encode(
+                imm,
+                1,
+                encoding.IntRegImmFunct.ADDI,
+                2,
+                encoding.Opcode.OP_IMM),
+            shape=32)
+    extended_imm = int(f"{imm:012b}"[0]*20 + f"{imm:012b}", 2)
+    assert (extended_imm & 0x7ff) == imm
+
+    def testbench():
+        assert (yield encoding.IType(addi).immediate()) == extended_imm
+
+    comb_sim(m, testbench)

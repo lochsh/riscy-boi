@@ -133,10 +133,29 @@ class IType:
     FUNCT_END = 14
 
     def __init__(self, instruction):
+        """
+        Initialiser
+
+        Args:
+            instruction (nm.Value): the instruction to decode
+        """
         self.instr = instruction
 
     @classmethod
     def encode(cls, imm_val, rs1_val, funct_val, rd_val, opcode_val):
+        """
+        Assembler method to encode an instruction
+
+        Args:
+            imm_val (int): the immediate value
+            rs1_val (int): the source register 1 value
+            funct_val (IntRegImmFunct): the function field
+            rd_val (int): the destination register value
+            opcode_val (Opcode): the opcode
+
+        Returns:
+            int: the encoded instruction
+        """
         return ((imm_val << cls.IMM_START) |
                 (rs1_val << RS1_START) |
                 (funct_val << cls.FUNCT_START) |
@@ -144,6 +163,12 @@ class IType:
                 (opcode_val << OPCODE_START))
 
     def immediate(self):
+        """
+        Construct the sign-extended immediate from the instruction
+
+        Returns:
+            nm.hdl.ast.Cat: the decoded immediate
+        """
         return sext(self.instr[self.IMM_START:self.IMM_END])
 
     def funct(self):
