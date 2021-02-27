@@ -34,7 +34,7 @@ def test_decoding_jal(comb_sim):
     idec = instruction_decoder.InstructionDecoder()
 
     def testbench():
-        immediate = int("1" * 20, base=2)
+        immediate = int("1" * 20 + "0", base=2)
         rd = 5
         instruction = encoding.JType.encode(immediate, rd)
 
@@ -42,6 +42,6 @@ def test_decoding_jal(comb_sim):
         yield nmigen.sim.Settle()
         assert (yield idec.pc_load) == 1
         assert (yield idec.alu_op) == alu.ALUOp.ADD
-        assert (yield idec.alu_imm) == int("1" * 32, base=2)
+        assert (yield idec.alu_imm) == int("1" * 31 + "0", base=2)
 
     comb_sim(idec, testbench)
