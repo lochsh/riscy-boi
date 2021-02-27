@@ -10,9 +10,23 @@ class Top(nm.Elaboratable):
 
     def elaborate(self, platform):
         m = nm.Module()
+
+        cd_sync = nm.ClockDomain("sync")
+        m.domains += cd_sync
+        m.submodules.pll = nm.Instance(
+                "SB_PLL40_CORE",
+                p_FEEDBACK_PATH="SIMPLE",
+                p_DIVR=3,
+                p_DIVF=40,
+                p_DIVQ=6,
+                p_FILTER_RANGE=2,
+                i_RESETB=1,
+                i_BYPASS=0,
+                i_REFERENCECLK=platform.request("clk100").i,
+                o_PLLOUTCORE=cd_sync.clk)
+
         reg = 2
         cpu_inst = m.submodules.cpu = cpu.CPU(debug_reg=reg)
-
         link_reg = 5
         program = [encoding.IType.encode(
                         1,
@@ -32,6 +46,6 @@ class Top(nm.Elaboratable):
 
         colours = ["b", "g", "o", "r"]
         leds = nm.Cat(platform.request(f"led_{c}") for c in colours)
-        m.d.sync += leds.eq(cpu_inst.debug_out[25:29])
+        m.d.sync += leds.eq(cpu_inst.debug_out[13:17])
 
         return m
