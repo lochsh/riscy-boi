@@ -41,7 +41,7 @@ class RegisterFile(nm.Elaboratable):
         rp1 = m.submodules.rp1 = registers.read_port(domain="comb")
         rp2 = m.submodules.rp2 = registers.read_port(domain="comb")
         debug_rp = m.submodules.debug_rp = registers.read_port(domain="comb")
-        wp = m.submodules.wp = registers.write_port()
+        wp = m.submodules.wp = registers.write_port(domain="sync")
 
         # The first register, x0, has a special function: Reading it always
         # returns 0 and writes to it are ignored.
@@ -49,11 +49,15 @@ class RegisterFile(nm.Elaboratable):
         m.d.comb += wp.en.eq(
                 nm.Mux(self.write_select == 0, 0, self.write_enable))
 
-        for sel, data, port in (
-                (self.read_select_1, self.read_data_1, rp1),
-                (self.read_select_2, self.read_data_2, rp2),
-                (self.write_select, self.write_data, wp),
-                (self.debug_reg, self.debug_out, debug_rp)):
-            m.d.comb += [port.addr.eq(sel), port.data.eq(data)]
+        m.d.comb += [
+                rp1.addr.eq(self.read_select_1),
+                rp2.addr.eq(self.read_select_2),
+                wp.addr.eq(self.write_select),
+                debug_rp.addr.eq(self.debug_reg),
+                self.read_data_1.eq(rp1.data),
+                self.read_data_2.eq(rp2.data),
+                wp.data.eq(self.write_data),
+                self.debug_out.eq(debug_rp.data),
+        ]
 
         return m
