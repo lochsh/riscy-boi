@@ -11,12 +11,12 @@ from . import encoding
 class RdValue(enum.IntEnum):
     """MUX opcodes for the value put in the destination register"""
     ALU_OUTPUT = 0
-    PC_INCR = 1
+    PC_INC = 1
 
 
 class ALUInput(enum.IntEnum):
     """MUX opcodes for the value inputted to the ALU"""
-    IMM = 0
+    READ_DATA_1 = 0
     PC = 1
 
 
@@ -27,17 +27,19 @@ class InstructionDecoder(nm.Elaboratable):
     * instr (in): instruction to decode
 
     * pc_load (out): load signal to program counter
+
     * alu_op (out): ALU operation to perform
     * alu_imm (out): the value to input to the ALU, constructed from the
       immediate value in the instruction
+    * alu_mux_op (out): multiplexor operator defining what value is the first
+      input to the ALU
+
     * rf_write_enable (out): register file's write_enable input
     * rf_write_select (out): register files' write_select input
     * rf_read_select_1 (out): register file's read_select_1 input
     * rf_read_select_2 (out): register file's read_select_2 input
     * rd_mux_op (out): multiplexor operation defining what value is written to
       the destination register
-    * alu_mux_op (out): multiplexor operation defining what value is the second
-      input to the ALU
     """
 
     def __init__(self, num_registers=32):
@@ -74,7 +76,7 @@ class InstructionDecoder(nm.Elaboratable):
                                 self.alu_op.eq(alu.ALUOp.ADD),
                                 self.alu_imm.eq(itype.immediate()),
                                 self.rd_mux_op.eq(RdValue.ALU_OUTPUT),
-                                self.alu_mux_op.eq(ALUInput.IMM),
+                                self.alu_mux_op.eq(ALUInput.READ_DATA_1),
                         ]
 
             with m.Case(encoding.Opcode.JAL):
@@ -85,7 +87,7 @@ class InstructionDecoder(nm.Elaboratable):
                         self.pc_load.eq(1),
                         self.alu_op.eq(alu.ALUOp.ADD),
                         self.alu_imm.eq(jtype.immediate()),
-                        self.rd_mux_op.eq(RdValue.PC_INCR),
+                        self.rd_mux_op.eq(RdValue.PC_INC),
                         self.alu_mux_op.eq(ALUInput.PC)
                 ]
 

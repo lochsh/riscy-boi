@@ -31,7 +31,7 @@ class CPU(nm.Elaboratable):
                 rf.write_enable.eq(idec.rf_write_enable),
                 rf.write_select.eq(idec.rf_write_select),
 
-                alu_inst.a.eq(rf.read_data_1),
+                alu_inst.a.eq(idec.alu_imm),
                 alu_inst.op.eq(idec.alu_op),
 
                 pc.load.eq(idec.pc_load),
@@ -44,14 +44,14 @@ class CPU(nm.Elaboratable):
         ]
 
         with m.Switch(idec.rd_mux_op):
-            with m.Case(instruction_decoder.RdValue.PC_INCR):
+            with m.Case(instruction_decoder.RdValue.PC_INC):
                 m.d.comb += rf.write_data.eq(pc.pc_inc)
             with m.Case(instruction_decoder.RdValue.ALU_OUTPUT):
                 m.d.comb += rf.write_data.eq(alu_inst.o)
 
         with m.Switch(idec.alu_mux_op):
-            with m.Case(instruction_decoder.ALUInput.IMM):
-                m.d.comb += alu_inst.b.eq(idec.alu_imm)
+            with m.Case(instruction_decoder.ALUInput.READ_DATA_1):
+                m.d.comb += alu_inst.b.eq(rf.read_data_1)
             with m.Case(instruction_decoder.ALUInput.PC):
                 m.d.comb += alu_inst.b.eq(pc.pc)
 
