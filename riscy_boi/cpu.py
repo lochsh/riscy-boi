@@ -37,7 +37,7 @@ class CPU(nm.Elaboratable):
                 pc.load.eq(idec.pc_load),
                 pc.input_address.eq(alu_inst.o),
 
-                self.imem_addr.eq(pc.pc),
+                self.imem_addr.eq(pc.pc_next),
                 idec.instr.eq(self.imem_data),
 
                 self.debug_out.eq(rf.debug_out),
@@ -45,7 +45,7 @@ class CPU(nm.Elaboratable):
 
         with m.Switch(idec.rd_mux_op):
             with m.Case(instruction_decoder.RdValue.PC_INCR):
-                m.d.comb += rf.write_data.eq(pc.incremented)
+                m.d.comb += rf.write_data.eq(pc.pc_inc)
             with m.Case(instruction_decoder.RdValue.ALU_OUTPUT):
                 m.d.comb += rf.write_data.eq(alu_inst.o)
 
