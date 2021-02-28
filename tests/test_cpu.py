@@ -1,6 +1,5 @@
 """CPU tests"""
 import nmigen as nm
-import nmigen.sim
 
 from riscy_boi import cpu, encoding
 
