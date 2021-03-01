@@ -1,4 +1,4 @@
-"""Reigster file"""
+"""Register file"""
 import nmigen as nm
 
 

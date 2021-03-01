@@ -35,9 +35,9 @@ class Top(nm.Elaboratable):
                         reg,
                         encoding.Opcode.OP_IMM),
                    # jump back to the previous instruction for infinite loop
-                   encoding.JType.encode(0xffffc, link_reg)]
+                   encoding.JType.encode(0x1ffffc, link_reg)]
 
-        imem = nm.Memory(width=32, depth=1024, init=program)
+        imem = nm.Memory(width=32, depth=256, init=program)
         imem_rp = m.submodules.imem_rp = imem.read_port()
         m.d.comb += [
                 imem_rp.addr.eq(cpu_inst.imem_addr),
