@@ -125,12 +125,18 @@ class IntRegImmFunct(enum.IntEnum):
     SRLI_OR_SRAI = 0b101  # noqa: E221
 
 
+class RightShiftType(enum.IntEnum):
+    """Shift type for distinguishing between SRLI and SRAI instructions"""
+    SRLI = 0b0000000
+    SRAI = 0b0100000
+
+
 class IType:
     """I-type instruction format"""
     IMM_START = 20
     IMM_END = 32
     FUNCT_START = 12
-    FUNCT_END = 14
+    FUNCT_END = 15
 
     def __init__(self, instruction):
         """
@@ -173,6 +179,14 @@ class IType:
 
     def funct(self):
         return self.instr[self.FUNCT_START:self.FUNCT_END]
+
+    def shift_amount(self):
+        """For SLLI, SRLI and SRAI instructions, get the shift amount"""
+        return self.instr[self.IMM_START:self.IMM_START + 5]
+
+    def right_shift_type(self):
+        """For SRLI and SRAI instructions, get the shift type"""
+        return self.instr[self.IMM_START + 5:self.IMM_END]
 
 
 class JType:

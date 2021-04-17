@@ -70,14 +70,55 @@ class InstructionDecoder(nm.Elaboratable):
 
                 itype = encoding.IType(self.instr)
                 with m.Switch(itype.funct()):
+                    m.d.comb += [
+                            self.pc_load.eq(0),
+                            self.rd_mux_op.eq(RdValue.ALU_OUTPUT),
+                            self.alu_mux_op.eq(ALUInput.READ_DATA_1),
+                    ]
+
                     with m.Case(encoding.IntRegImmFunct.ADDI):
                         m.d.comb += [
-                                self.pc_load.eq(0),
                                 self.alu_op.eq(alu.ALUOp.ADD),
                                 self.alu_imm.eq(itype.immediate()),
-                                self.rd_mux_op.eq(RdValue.ALU_OUTPUT),
-                                self.alu_mux_op.eq(ALUInput.READ_DATA_1),
                         ]
+
+                    with m.Case(encoding.IntRegImmFunct.XORI):
+                        m.d.comb += [
+                                self.alu_op.eq(alu.ALUOp.XOR),
+                                self.alu_imm.eq(itype.immediate()),
+                        ]
+
+                    with m.Case(encoding.IntRegImmFunct.ORI):
+                        m.d.comb += [
+                                self.alu_op.eq(alu.ALUOp.OR),
+                                self.alu_imm.eq(itype.immediate()),
+                        ]
+
+                    with m.Case(encoding.IntRegImmFunct.ORI):
+                        m.d.comb += [
+                                self.alu_op.eq(alu.ALUOp.OR),
+                                self.alu_imm.eq(itype.immediate()),
+                        ]
+
+                    with m.Case(encoding.IntRegImmFunct.ANDI):
+                        m.d.comb += [
+                                self.alu_op.eq(alu.ALUOp.AND),
+                                self.alu_imm.eq(itype.immediate()),
+                        ]
+
+                    with m.Case(encoding.IntRegImmFunct.SLLI):
+                        m.d.comb += [
+                                self.alu_op.eq(alu.ALUOp.SLL),
+                                self.alu_imm.eq(itype.shift_amount())
+                        ]
+
+                    with m.Case(encoding.IntRegImmFunct.SRLI_OR_SRAI):
+                        m.d.comb += self.alu_imm.eq(itype.shift_amount())
+                        with m.Switch(itype.right_shift_type()):
+                            with m.Case(encoding.RightShiftType.SRLI):
+                                m.d.comb += self.alu_op.eq(alu.ALUOp.SRL)
+                            with m.Case(encoding.RightShiftType.SRAI):
+                                m.d.comb += self.alu_op.eq(alu.ALUOp.SRA)
 
             with m.Case(encoding.Opcode.JAL):
                 m.d.comb += self.rf_write_enable.eq(1)
