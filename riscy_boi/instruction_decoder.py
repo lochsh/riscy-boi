@@ -12,6 +12,7 @@ class RdValue(enum.IntEnum):
     """MUX opcodes for the value put in the destination register"""
     ALU_OUTPUT = 0
     PC_INC = 1
+    LOAD = 2
 
 
 class ALUInput(enum.IntEnum):
@@ -53,8 +54,8 @@ class InstructionDecoder(nm.Elaboratable):
         self.rf_write_select = nm.Signal(range(num_registers))
         self.rf_read_select_1 = nm.Signal(range(num_registers))
         self.rf_read_select_2 = nm.Signal(range(num_registers))
-        self.rd_mux_op = nm.Signal()
-        self.alu_mux_op = nm.Signal()
+        self.rd_mux_op = nm.Signal(RdValue)
+        self.alu_mux_op = nm.Signal(ALUInput)
 
     def elaborate(self, _):
         m = nm.Module()

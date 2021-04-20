@@ -13,6 +13,12 @@ class CPU(nm.Elaboratable):
     def __init__(self, debug_reg=2):
         self.imem_addr = nm.Signal(32)
         self.imem_data = nm.Signal(32)
+
+        self.dmem_r_addr = nm.Signal(32)
+        self.dmem_r_data = nm.Signal(32)
+        self.dmem_w_addr = nm.Signal(32)
+        self.dmem_w_data = nm.Signal(32)
+
         self.debug_reg = debug_reg
         self.debug_out = nm.Signal(32)
 
@@ -34,6 +40,8 @@ class CPU(nm.Elaboratable):
                 alu_inst.a.eq(idec.alu_imm),
                 alu_inst.op.eq(idec.alu_op),
 
+                self.dmem_r_addr.eq(alu_inst.o),
+
                 pc.load.eq(idec.pc_load),
                 pc.input_address.eq(alu_inst.o),
 
@@ -48,6 +56,8 @@ class CPU(nm.Elaboratable):
                 m.d.comb += rf.write_data.eq(pc.pc_inc)
             with m.Case(instruction_decoder.RdValue.ALU_OUTPUT):
                 m.d.comb += rf.write_data.eq(alu_inst.o)
+            with m.Case(instruction_decoder.RdValue.LOAD):
+                m.d.comb += rf.write_data.eq(self.dmem_r_data)
 
         with m.Switch(idec.alu_mux_op):
             with m.Case(instruction_decoder.ALUInput.READ_DATA_1):

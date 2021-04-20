@@ -13,6 +13,12 @@ class Top(nm.Elaboratable):
 
         cd_sync = nm.ClockDomain("sync")
         m.domains += cd_sync
+
+        clk100 = platform.request("clk100")
+        cd_fast = nm.ClockDomain("fast")
+        m.domains += cd_fast
+        m.d.comb += cd_fast.clk.eq(clk100.i)
+
         m.submodules.pll = nm.Instance(
                 "SB_PLL40_CORE",
                 p_FEEDBACK_PATH="SIMPLE",
@@ -22,7 +28,7 @@ class Top(nm.Elaboratable):
                 p_FILTER_RANGE=2,
                 i_RESETB=1,
                 i_BYPASS=0,
-                i_REFERENCECLK=platform.request("clk100").i,
+                i_REFERENCECLK=clk100.i,
                 o_PLLOUTCORE=cd_sync.clk)
 
         reg = 2
@@ -42,6 +48,18 @@ class Top(nm.Elaboratable):
         m.d.comb += [
                 imem_rp.addr.eq(cpu_inst.imem_addr),
                 cpu_inst.imem_data.eq(imem_rp.data),
+        ]
+
+        dmem = nm.Memory(width=32, depth=256)
+        dmem_rp = m.submodules.dmem_rp = dmem.read_port(
+                transparent=False,
+                domain="fast")
+        dmem_wp = m.submodules.dmem_wp = dmem.write_port(domain="fast")
+        m.d.comb += [
+                dmem_rp.addr.eq(cpu_inst.dmem_r_addr),
+                cpu_inst.dmem_r_data.eq(dmem_rp.data),
+                dmem_wp.addr.eq(cpu_inst.dmem_w_addr),
+                dmem_wp.data.eq(cpu_inst.dmem_w_data),
         ]
 
         colours = ["b", "g", "o", "r"]
