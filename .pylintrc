@@ -10,4 +10,4 @@ max-attributes=12
 max-args=6
 
 [MESSAGES CONTROL]
-disable=C0116,R0903,no-self-use,E1129
+disable=C0116,R0903,no-self-use,E1129,R0914

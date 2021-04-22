@@ -110,7 +110,7 @@ class InstructionDecoder(nm.Elaboratable):
                     with m.Case(encoding.IntRegImmFunct.SLLI):
                         m.d.comb += [
                                 self.alu_op.eq(alu.ALUOp.SLL),
-                                self.alu_imm.eq(itype.shift_amount())
+                                self.alu_imm.eq(itype.shift_amount()),
                         ]
 
                     with m.Case(encoding.IntRegImmFunct.SRLI_OR_SRAI):
@@ -130,7 +130,21 @@ class InstructionDecoder(nm.Elaboratable):
                         self.alu_op.eq(alu.ALUOp.ADD),
                         self.alu_imm.eq(jtype.immediate()),
                         self.rd_mux_op.eq(RdValue.PC_INC),
-                        self.alu_mux_op.eq(ALUInput.PC)
+                        self.alu_mux_op.eq(ALUInput.PC),
                 ]
+
+            with m.Case(encoding.Opcode.LOAD):
+                m.d.comb += self.rf_write_enable.eq(1)
+
+                itype = encoding.IType(self.instr)
+                with m.Switch(itype.funct()):
+                    with m.Case(encoding.LoadFunct.LW):
+                        m.d.comb += [
+                                self.pc_load.eq(0),
+                                self.alu_op.eq(alu.ALUOp.ADD),
+                                self.alu_imm.eq(itype.immediate()),
+                                self.rd_mux_op.eq(RdValue.LOAD),
+                                self.alu_mux_op.eq(ALUInput.READ_DATA_1),
+                        ]
 
         return m

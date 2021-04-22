@@ -23,6 +23,9 @@ def test_decoding_addi(comb_sim):
         assert (yield idec.rf_read_select_1) == rs1
         assert (yield idec.alu_op) == alu.ALUOp.ADD
         assert (yield idec.alu_imm) == 0b11111111111111111111100011110000
+        assert (yield idec.alu_mux_op) == (
+                instruction_decoder.ALUInput.READ_DATA_1)
+        assert (yield idec.rd_mux_op) == instruction_decoder.RdValue.ALU_OUTPUT
 
         assert (yield idec.rf_write_enable) == 1
         assert (yield idec.rf_write_select) == rd
@@ -43,5 +46,32 @@ def test_decoding_jal(comb_sim):
         assert (yield idec.pc_load) == 1
         assert (yield idec.alu_op) == alu.ALUOp.ADD
         assert (yield idec.alu_imm) == int("1" * 31 + "0", base=2)
+
+    comb_sim(idec, testbench)
+
+
+def test_decoding_load_word(comb_sim):
+    idec = instruction_decoder.InstructionDecoder()
+
+    def testbench():
+        immediate = 0b100011110000
+        opcode = encoding.Opcode.LOAD
+        funct = encoding.LoadFunct.LW
+        rs1 = 1
+        rd = 2
+        instruction = encoding.IType.encode(immediate, rs1, funct, rd, opcode)
+
+        yield idec.instr.eq(instruction)
+        yield nmigen.sim.Settle()
+        assert (yield idec.pc_load) == 0
+        assert (yield idec.rf_read_select_1) == rs1
+        assert (yield idec.alu_op) == alu.ALUOp.ADD
+        assert (yield idec.alu_imm) == 0b11111111111111111111100011110000
+        assert (yield idec.alu_mux_op) == (
+                instruction_decoder.ALUInput.READ_DATA_1)
+        assert (yield idec.rd_mux_op) == instruction_decoder.RdValue.LOAD
+
+        assert (yield idec.rf_write_enable) == 1
+        assert (yield idec.rf_write_select) == rd
 
     comb_sim(idec, testbench)

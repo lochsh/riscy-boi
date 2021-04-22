@@ -125,6 +125,15 @@ class IntRegImmFunct(enum.IntEnum):
     SRLI_OR_SRAI = 0b101  # noqa: E221
 
 
+class LoadFunct(enum.IntEnum):
+    """Funct field values for load instructions"""
+    LB  = 0b000  # noqa: E221
+    LH  = 0b001  # noqa: E221
+    LW  = 0b010  # noqa: E221
+    LBU = 0b100
+    LHU = 0b101
+
+
 class RightShiftType(enum.IntEnum):
     """Shift type for distinguishing between SRLI and SRAI instructions"""
     SRLI = 0b0000000
