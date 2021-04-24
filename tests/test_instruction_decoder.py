@@ -2,6 +2,7 @@
 import nmigen.sim
 
 from riscy_boi import alu
+from riscy_boi import data_memory
 from riscy_boi import encoding
 from riscy_boi import instruction_decoder
 
@@ -73,5 +74,8 @@ def test_decoding_load_word(comb_sim):
 
         assert (yield idec.rf_write_enable) == 1
         assert (yield idec.rf_write_select) == rd
+
+        assert (yield idec.dmem_signed) == 1
+        assert (yield idec.dmem_address_mode) == data_memory.AddressMode.WORD
 
     comb_sim(idec, testbench)

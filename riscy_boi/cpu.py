@@ -2,6 +2,7 @@
 import nmigen as nm
 
 from . import alu
+from . import data_memory
 from . import instruction_decoder
 from . import program_counter
 from . import register_file
@@ -26,6 +27,7 @@ class CPU(nm.Elaboratable):
         m = nm.Module()
 
         alu_inst = m.submodules.alu = alu.ALU(32)
+        dmem = m.submodules.dmem = data_memory.DataMemory()
         idec = m.submodules.idec = instruction_decoder.InstructionDecoder()
         pc = m.submodules.pc = program_counter.ProgramCounter()
         rf = m.submodules.rf = register_file.RegisterFile(
@@ -40,7 +42,11 @@ class CPU(nm.Elaboratable):
                 alu_inst.a.eq(idec.alu_imm),
                 alu_inst.op.eq(idec.alu_op),
 
-                self.dmem_r_addr.eq(alu_inst.o),
+                self.dmem_r_addr.eq(dmem.dmem_r_addr),
+                dmem.byte_address.eq(alu_inst.o),
+                dmem.signed.eq(idec.dmem_signed),
+                dmem.address_mode.eq(idec.dmem_address_mode),
+                dmem.dmem_r_data.eq(self.dmem_r_data),
 
                 pc.load.eq(idec.pc_load),
                 pc.input_address.eq(alu_inst.o),
@@ -57,7 +63,7 @@ class CPU(nm.Elaboratable):
             with m.Case(instruction_decoder.RdValue.ALU_OUTPUT):
                 m.d.comb += rf.write_data.eq(alu_inst.o)
             with m.Case(instruction_decoder.RdValue.LOAD):
-                m.d.comb += rf.write_data.eq(self.dmem_r_data)
+                m.d.comb += rf.write_data.eq(dmem.load_value)
 
         with m.Switch(idec.alu_mux_op):
             with m.Case(instruction_decoder.ALUInput.READ_DATA_1):

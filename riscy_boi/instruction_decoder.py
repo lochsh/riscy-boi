@@ -5,6 +5,7 @@ import enum
 import nmigen as nm
 
 from . import alu
+from . import data_memory
 from . import encoding
 
 
@@ -41,6 +42,9 @@ class InstructionDecoder(nm.Elaboratable):
     * rf_read_select_2 (out): register file's read_select_2 input
     * rd_mux_op (out): multiplexor operation defining what value is written to
       the destination register
+
+    * dmem_address_mode (out): address mode for data memory reads
+    * dmem_signed (out): whether input to data memory should be sign-extended
     """
 
     def __init__(self, num_registers=32):
@@ -56,6 +60,8 @@ class InstructionDecoder(nm.Elaboratable):
         self.rf_read_select_2 = nm.Signal(range(num_registers))
         self.rd_mux_op = nm.Signal(RdValue)
         self.alu_mux_op = nm.Signal(ALUInput)
+        self.dmem_address_mode = nm.Signal(data_memory.AddressMode)
+        self.dmem_signed = nm.Signal()
 
     def elaborate(self, _):
         m = nm.Module()
@@ -134,17 +140,29 @@ class InstructionDecoder(nm.Elaboratable):
                 ]
 
             with m.Case(encoding.Opcode.LOAD):
-                m.d.comb += self.rf_write_enable.eq(1)
+                m.d.comb += [
+                        self.rf_write_enable.eq(1),
+                        self.pc_load.eq(0),
+                        self.alu_op.eq(alu.ALUOp.ADD),
+                        self.alu_imm.eq(itype.immediate()),
+                        self.rd_mux_op.eq(RdValue.LOAD),
+                        self.alu_mux_op.eq(ALUInput.READ_DATA_1),
+                ]
 
                 itype = encoding.IType(self.instr)
-                with m.Switch(itype.funct()):
-                    with m.Case(encoding.LoadFunct.LW):
-                        m.d.comb += [
-                                self.pc_load.eq(0),
-                                self.alu_op.eq(alu.ALUOp.ADD),
-                                self.alu_imm.eq(itype.immediate()),
-                                self.rd_mux_op.eq(RdValue.LOAD),
-                                self.alu_mux_op.eq(ALUInput.READ_DATA_1),
-                        ]
+                funct = itype.funct()
+                with m.If(funct == encoding.LoadFunct.LW):
+                    m.d.comb += self.dmem_address_mode.eq(
+                            data_memory.AddressMode.WORD)
+                with m.Elif((funct == encoding.LoadFunct.LH) |
+                            (funct == encoding.LoadFunct.LHU)):
+                    m.d.comb += self.dmem_address_mode.eq(
+                                data_memory.AddressMode.HALF)
+                with m.Elif((funct == encoding.LoadFunct.LB) |
+                            (funct == encoding.LoadFunct.LBU)):
+                    m.d.comb += self.dmem_address_mode.eq(
+                                data_memory.AddressMode.BYTE)
+
+                m.d.comb += self.dmem_signed.eq(funct[2] == 0)
 
         return m
