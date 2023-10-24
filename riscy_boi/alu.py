@@ -51,6 +51,6 @@ class ALU(nm.Module):
                 ALUOp.XOR: self.o.eq(self.a ^ self.b),
                 ALUOp.SLL: self.o.eq(self.b << self.a[:shamt_width]),
                 ALUOp.SRL: self.o.eq(self.b >> self.a[:shamt_width]),
-                ALUOp.SRA: self.o.eq(self.b.as_signed() >> self.a[:shamt_width]),
+                ALUOp.SRA: self.o.eq(self.b >> self.a[:shamt_width]),
             }
         )
