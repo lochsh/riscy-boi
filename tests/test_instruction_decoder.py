@@ -1,5 +1,5 @@
 """Instruction decoder tests"""
-import nmigen.sim
+import migen.sim
 
 from riscy_boi import alu
 from riscy_boi import data_memory
@@ -19,7 +19,7 @@ def test_decoding_addi(comb_sim):
         instruction = encoding.IType.encode(immediate, rs1, funct, rd, opcode)
 
         yield idec.instr.eq(instruction)
-        yield nmigen.sim.Settle()
+        yield migen.sim.Settle()
         assert (yield idec.pc_load) == 0
         assert (yield idec.rf_read_select_1) == rs1
         assert (yield idec.alu_op) == alu.ALUOp.ADD
@@ -43,7 +43,7 @@ def test_decoding_jal(comb_sim):
         instruction = encoding.JType.encode(immediate, rd)
 
         yield idec.instr.eq(instruction)
-        yield nmigen.sim.Settle()
+        yield migen.sim.Settle()
         assert (yield idec.pc_load) == 1
         assert (yield idec.alu_op) == alu.ALUOp.ADD
         assert (yield idec.alu_imm) == int("1" * 31 + "0", base=2)
@@ -63,7 +63,7 @@ def test_decoding_load_word(comb_sim):
         instruction = encoding.IType.encode(immediate, rs1, funct, rd, opcode)
 
         yield idec.instr.eq(instruction)
-        yield nmigen.sim.Settle()
+        yield migen.sim.Settle()
         assert (yield idec.pc_load) == 0
         assert (yield idec.rf_read_select_1) == rs1
         assert (yield idec.alu_op) == alu.ALUOp.ADD

@@ -1,5 +1,5 @@
 """ALU tests"""
-import nmigen.sim
+import migen.sim
 import pytest
 
 from riscy_boi import alu
@@ -51,7 +51,7 @@ def test_alu(comb_sim, op, a, b, o):
         yield alu_inst.op.eq(op)
         yield alu_inst.a.eq(a)
         yield alu_inst.b.eq(b)
-        yield nmigen.sim.Settle()
+        yield migen.sim.Settle()
         assert (yield alu_inst.o) == o
 
     comb_sim(alu_inst, testbench)

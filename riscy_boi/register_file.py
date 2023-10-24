@@ -1,8 +1,8 @@
 """Register file"""
-import nmigen as nm
+import migen as nm
 
 
-class RegisterFile(nm.Elaboratable):
+class RegisterFile(nm.Module):
     """
     Register file
 
@@ -32,24 +32,22 @@ class RegisterFile(nm.Elaboratable):
         self.debug_out = nm.Signal(self.register_width)
         self.debug_reg = debug_reg
 
-    def elaborate(self, _):
-        m = nm.Module()
         registers = nm.Memory(
                 width=self.register_width,
                 depth=self.num_registers)
 
-        rp1 = m.submodules.rp1 = registers.read_port(domain="comb")
-        rp2 = m.submodules.rp2 = registers.read_port(domain="comb")
-        debug_rp = m.submodules.debug_rp = registers.read_port(domain="comb")
-        wp = m.submodules.wp = registers.write_port(domain="sync")
+        rp1 = self.submodules.rp1 = registers.read_port(domain="comb")
+        rp2 = self.submodules.rp2 = registers.read_port(domain="comb")
+        debug_rp = self.submodules.debug_rp = registers.read_port(domain="comb")
+        wp = self.submodules.wp = registers.write_port(domain="sync")
 
         # The first register, x0, has a special function: Reading it always
         # returns 0 and writes to it are ignored.
         # https://github.com/riscv/riscv-asm-manual/blob/master/riscv-asm.md
-        m.d.comb += wp.en.eq(
+        self.comb += wp.en.eq(
                 nm.Mux(self.write_select == 0, 0, self.write_enable))
 
-        m.d.comb += [
+        self.comb += [
                 rp1.addr.eq(self.read_select_1),
                 rp2.addr.eq(self.read_select_2),
                 wp.addr.eq(self.write_select),
@@ -59,5 +57,3 @@ class RegisterFile(nm.Elaboratable):
                 wp.data.eq(self.write_data),
                 self.debug_out.eq(debug_rp.data),
         ]
-
-        return m

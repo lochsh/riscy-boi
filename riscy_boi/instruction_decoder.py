@@ -2,7 +2,7 @@
 import enum
 
 
-import nmigen as nm
+import migen as nm
 
 from . import alu
 from . import data_memory
@@ -22,7 +22,7 @@ class ALUInput(enum.IntEnum):
     PC = 1
 
 
-class InstructionDecoder(nm.Elaboratable):
+class InstructionDecoder(nm.Module):
     """
     Instruction decoder
 
@@ -63,75 +63,72 @@ class InstructionDecoder(nm.Elaboratable):
         self.dmem_address_mode = nm.Signal(data_memory.AddressMode)
         self.dmem_signed = nm.Signal()
 
-    def elaborate(self, _):
-        m = nm.Module()
-
         opcode = encoding.opcode(self.instr)
-        m.d.comb += self.rf_write_select.eq(encoding.rd(self.instr))
-        m.d.comb += self.rf_read_select_1.eq(encoding.rs1(self.instr))
-        m.d.comb += self.rf_read_select_2.eq(encoding.rs2(self.instr))
+        self.comb += self.rf_write_select.eq(encoding.rd(self.instr))
+        self.comb += self.rf_read_select_1.eq(encoding.rs1(self.instr))
+        self.comb += self.rf_read_select_2.eq(encoding.rs2(self.instr))
 
-        with m.Switch(opcode):
-            with m.Case(encoding.Opcode.OP_IMM):
-                m.d.comb += self.rf_write_enable.eq(1)
+        with self.Switch(opcode):
+            with self.Case(encoding.Opcode.OP_IMM):
+                self.comb += self.rf_write_enable.eq(1)
 
                 itype = encoding.IType(self.instr)
-                with m.Switch(itype.funct()):
-                    m.d.comb += [
+                with self.Switch(itype.funct()):
+                    self.comb += [
                             self.pc_load.eq(0),
                             self.rd_mux_op.eq(RdValue.ALU_OUTPUT),
                             self.alu_mux_op.eq(ALUInput.READ_DATA_1),
                     ]
 
-                    with m.Case(encoding.IntRegImmFunct.ADDI):
-                        m.d.comb += [
+                    with self.Case(encoding.IntRegImmFunct.ADDI):
+                        self.comb += [
                                 self.alu_op.eq(alu.ALUOp.ADD),
                                 self.alu_imm.eq(itype.immediate()),
                         ]
 
-                    with m.Case(encoding.IntRegImmFunct.XORI):
-                        m.d.comb += [
+                    with self.Case(encoding.IntRegImmFunct.XORI):
+                        self.comb += [
                                 self.alu_op.eq(alu.ALUOp.XOR),
                                 self.alu_imm.eq(itype.immediate()),
                         ]
 
-                    with m.Case(encoding.IntRegImmFunct.ORI):
-                        m.d.comb += [
+                    with self.Case(encoding.IntRegImmFunct.ORI):
+                        self.comb += [
                                 self.alu_op.eq(alu.ALUOp.OR),
                                 self.alu_imm.eq(itype.immediate()),
                         ]
 
-                    with m.Case(encoding.IntRegImmFunct.ORI):
-                        m.d.comb += [
+                    with self.Case(encoding.IntRegImmFunct.ORI):
+                        self.comb += [
                                 self.alu_op.eq(alu.ALUOp.OR),
                                 self.alu_imm.eq(itype.immediate()),
                         ]
 
-                    with m.Case(encoding.IntRegImmFunct.ANDI):
-                        m.d.comb += [
+                    with self.Case(encoding.IntRegImmFunct.ANDI):
+                        self.comb += [
                                 self.alu_op.eq(alu.ALUOp.AND),
                                 self.alu_imm.eq(itype.immediate()),
                         ]
 
-                    with m.Case(encoding.IntRegImmFunct.SLLI):
-                        m.d.comb += [
+                    with self.Case(encoding.IntRegImmFunct.SLLI):
+                        self.comb += [
                                 self.alu_op.eq(alu.ALUOp.SLL),
                                 self.alu_imm.eq(itype.shift_amount()),
                         ]
 
-                    with m.Case(encoding.IntRegImmFunct.SRLI_OR_SRAI):
-                        m.d.comb += self.alu_imm.eq(itype.shift_amount())
-                        with m.Switch(itype.right_shift_type()):
-                            with m.Case(encoding.RightShiftType.SRLI):
-                                m.d.comb += self.alu_op.eq(alu.ALUOp.SRL)
-                            with m.Case(encoding.RightShiftType.SRAI):
-                                m.d.comb += self.alu_op.eq(alu.ALUOp.SRA)
+                    with self.Case(encoding.IntRegImmFunct.SRLI_OR_SRAI):
+                        self.comb += self.alu_imm.eq(itype.shift_amount())
+                        with self.Switch(itype.right_shift_type()):
+                            with self.Case(encoding.RightShiftType.SRLI):
+                                self.comb += self.alu_op.eq(alu.ALUOp.SRL)
+                            with self.Case(encoding.RightShiftType.SRAI):
+                                self.comb += self.alu_op.eq(alu.ALUOp.SRA)
 
-            with m.Case(encoding.Opcode.JAL):
-                m.d.comb += self.rf_write_enable.eq(1)
+            with self.Case(encoding.Opcode.JAL):
+                self.comb += self.rf_write_enable.eq(1)
 
                 jtype = encoding.JType(self.instr)
-                m.d.comb += [
+                self.comb += [
                         self.pc_load.eq(1),
                         self.alu_op.eq(alu.ALUOp.ADD),
                         self.alu_imm.eq(jtype.immediate()),
@@ -139,8 +136,8 @@ class InstructionDecoder(nm.Elaboratable):
                         self.alu_mux_op.eq(ALUInput.PC),
                 ]
 
-            with m.Case(encoding.Opcode.LOAD):
-                m.d.comb += [
+            with self.Case(encoding.Opcode.LOAD):
+                self.comb += [
                         self.rf_write_enable.eq(1),
                         self.pc_load.eq(0),
                         self.alu_op.eq(alu.ALUOp.ADD),
@@ -151,18 +148,16 @@ class InstructionDecoder(nm.Elaboratable):
 
                 itype = encoding.IType(self.instr)
                 funct = itype.funct()
-                with m.If(funct == encoding.LoadFunct.LW):
-                    m.d.comb += self.dmem_address_mode.eq(
+                with nm.If(funct == encoding.LoadFunct.LW):
+                    self.comb += self.dmem_address_mode.eq(
                             data_memory.AddressMode.WORD)
-                with m.Elif((funct == encoding.LoadFunct.LH) |
+                with self.Elif((funct == encoding.LoadFunct.LH) |
                             (funct == encoding.LoadFunct.LHU)):
-                    m.d.comb += self.dmem_address_mode.eq(
+                    self.comb += self.dmem_address_mode.eq(
                                 data_memory.AddressMode.HALF)
-                with m.Elif((funct == encoding.LoadFunct.LB) |
+                with self.Elif((funct == encoding.LoadFunct.LB) |
                             (funct == encoding.LoadFunct.LBU)):
-                    m.d.comb += self.dmem_address_mode.eq(
+                    self.comb += self.dmem_address_mode.eq(
                                 data_memory.AddressMode.BYTE)
 
-                m.d.comb += self.dmem_signed.eq(funct[2] == 0)
-
-        return m
+                self.comb += self.dmem_signed.eq(funct[2] == 0)

@@ -1,5 +1,5 @@
 """Entry point"""
-from nmigen_boards import blackice_ii
+from migen_boards import blackice_ii
 
 from . import top
 

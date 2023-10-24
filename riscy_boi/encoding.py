@@ -3,7 +3,7 @@ import collections
 import enum
 import functools
 
-import nmigen as nm
+import migen as nm
 
 OPCODE_START = 0
 OPCODE_END = 7

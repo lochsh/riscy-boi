@@ -1,5 +1,5 @@
 """CPU tests"""
-import nmigen as nm
+import migen as nm
 
 from riscy_boi import cpu, encoding
 
@@ -21,7 +21,7 @@ def test_cpu(sync_sim):
 
     imem = nm.Memory(width=32, depth=1024, init=program)
     imem_rp = m.submodules.imem_rp = imem.read_port(domain="sync")
-    m.d.comb += [
+    m.comb += [
             imem_rp.addr.eq(cpu_inst.imem_addr[2:]),
             cpu_inst.imem_data.eq(imem_rp.data),
     ]

@@ -1,7 +1,7 @@
 """Data memory interface"""
 import enum
 
-import nmigen as nm
+import migen as nm
 
 
 class AddressMode(enum.IntEnum):
@@ -11,7 +11,7 @@ class AddressMode(enum.IntEnum):
     WORD = 0b10
 
 
-class DataMemory(nm.Elaboratable):
+class DataMemory(nm.Module):
     """
     Data memory interface
 
@@ -34,18 +34,14 @@ class DataMemory(nm.Elaboratable):
         self.dmem_r_addr = nm.Signal(30)
         self.load_value = nm.Signal(32)
 
-    def elaborate(self, _):
-        m = nm.Module()
-        m.d.comb += self.dmem_r_addr.eq(self.byte_address[2:])
+        self.comb += self.dmem_r_addr.eq(self.byte_address[2:])
 
-        with m.Switch(self.address_mode):
-            with m.Case(AddressMode.BYTE):
-                m.d.comb += self.load_value.eq(self.dmem_r_data.word_select(
+        with self.Switch(self.address_mode):
+            with self.Case(AddressMode.BYTE):
+                self.comb += self.load_value.eq(self.dmem_r_data.word_select(
                     self.byte_address[0:2], 8))
-            with m.Case(AddressMode.HALF):
-                m.d.comb += self.load_value.eq(self.dmem_r_data.word_select(
+            with self.Case(AddressMode.HALF):
+                self.comb += self.load_value.eq(self.dmem_r_data.word_select(
                     self.byte_address[1], 16))
-            with m.Case(AddressMode.WORD):
-                m.d.comb += self.load_value.eq(self.dmem_r_data)
-
-        return m
+            with self.Case(AddressMode.WORD):
+                self.comb += self.load_value.eq(self.dmem_r_data)

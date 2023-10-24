@@ -1,16 +1,15 @@
 [tool.poetry]
 name = "riscy-boi"
 version = "0.1.0"
-description = "Toy nmigen rv32i cpu implementation"
+description = "Toy migen rv32i cpu implementation"
 authors = ["Hannah McLaughlin <h@mcla.ug>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-nmigen = {git="https://github.com/nmigen/nmigen"}
-nmigen_boards = {git="https://github.com/nmigen/nmigen-boards"}
 yowasp-yosys = "^0.9.post5191.dev103"
 yowasp-nextpnr-ice40 = "^0.0.post2867.dev68"
 yowasp-nextpnr-ice40-8k = "^0.0.post2867.dev68"
+migen = "^0.9.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.1"

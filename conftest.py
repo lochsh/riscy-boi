@@ -2,14 +2,11 @@
 import os
 import shutil
 
-import nmigen.sim
+import migen.sim
 import pytest
 
 
-VCD_TOP_DIR = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)),
-        "tests",
-        "vcd")
+VCD_TOP_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "tests", "vcd")
 
 
 def vcd_path(node):
@@ -25,9 +22,8 @@ def clear_vcd_directory():
 
 @pytest.fixture
 def comb_sim(request):
-
     def run(fragment, process):
-        sim = nmigen.sim.Simulator(fragment)
+        sim = migen.sim.Simulator(fragment)
         sim.add_process(process)
         with sim.write_vcd(vcd_path(request.node)):
             sim.run_until(100e-6)
@@ -37,9 +33,8 @@ def comb_sim(request):
 
 @pytest.fixture
 def sync_sim(request):
-
     def run(fragment, process):
-        sim = nmigen.sim.Simulator(fragment)
+        sim = migen.sim.Simulator(fragment)
         sim.add_sync_process(process)
         sim.add_clock(1 / 10e6)
         with sim.write_vcd(vcd_path(request.node)):

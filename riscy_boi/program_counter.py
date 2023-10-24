@@ -1,10 +1,10 @@
 """Program Counter"""
-import nmigen as nm
+import migen as nm
 
 INSTR_BYTES = 4
 
 
-class ProgramCounter(nm.Elaboratable):
+class ProgramCounter(nm.Module):
     """
     Program Counter
 
@@ -25,15 +25,11 @@ class ProgramCounter(nm.Elaboratable):
         self.pc_next = nm.Signal(width)
         self.pc_inc = nm.Signal(width)
 
-    def elaborate(self, _):
-        m = nm.Module()
+        self.comb += self.pc_inc.eq(self.pc + INSTR_BYTES)
+        self.sync += self.pc.eq(self.pc_next)
 
-        m.d.comb += self.pc_inc.eq(self.pc + INSTR_BYTES)
-        m.d.sync += self.pc.eq(self.pc_next)
-
-        with m.If(self.load):
-            m.d.comb += self.pc_next.eq(self.input_address)
-        with m.Else():
-            m.d.comb += self.pc_next.eq(self.pc_inc)
-
-        return m
+        self.comb += nm.If(
+            self.load,
+            self.pc_next.eq(self.input_address)).Else(
+            self.pc_next.eq(self.pc_inc)
+        )
